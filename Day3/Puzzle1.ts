@@ -18,7 +18,6 @@ const countTrees = (grid: Array<string>): number => {
     let treeCount: number = 0;
     grid.forEach((line: string, idx: number) => {
         const posInLine: number = (idx * 3) % (gridWidth);
-        console.log(posInLine);
         if (isTree(line.charAt(posInLine))) treeCount++;
     });
     return treeCount;

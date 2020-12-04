@@ -16,16 +16,15 @@ const isTree = (val: string): boolean => {
  * Counts the number of trees in a grid when traversed using a given slope.
  */
 const countTrees = (grid: Array<string>, slope: Slope): number => {
-    const gridWidth: number = grid[0].length;
+    const [gridWidth, gridHeight]: [number, number] = [grid[0].length, grid.length];
     let treeCount: number = 0;
-    grid.forEach((line: string, idx: number) => {
-        // Skip over lines that the slope doesn't land on.
-        if (idx % slope[1] === 0) {
-            // The grid pattern repeats, so use mod to find the idx in the provided grid line.
-            const posInLine: number = (idx * slope[0]) % (gridWidth);
-            if (isTree(line.charAt(posInLine))) treeCount++;
-        }
-    });
+    let lineIdx: number = 0;
+    while (lineIdx < gridHeight) {
+        // The grid pattern repeats, so use mod to find the idx in the provided grid line.
+        const posInLine: number = (lineIdx * slope[0]) % (gridWidth);
+        if (isTree(grid[lineIdx].charAt(posInLine))) treeCount++;
+        lineIdx += slope[1];
+    }
     return treeCount;
 }
 
