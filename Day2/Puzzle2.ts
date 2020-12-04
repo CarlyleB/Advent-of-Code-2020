@@ -9,6 +9,9 @@ interface PasswordPolicy {
     letter: string;
 }
 
+/**
+ * Returns true if the letter specified by the policy is present at the given indices.
+ */
 const isPasswordValid = (policy: PasswordPolicy, password: string): boolean => {
     const passwordLetters: Array<string> = password.split('');
     const idxAMatch: boolean = passwordLetters[policy.idxA] === policy.letter;
@@ -16,6 +19,9 @@ const isPasswordValid = (policy: PasswordPolicy, password: string): boolean => {
     return (idxAMatch && !idxBMatch) || (idxBMatch && !idxAMatch);
 }
 
+/**
+ * Creates PasswordPolicy object from a string in the format "<min>-<max> <letter>"
+ */
 const parsePolicy = (line: string): PasswordPolicy => {
     const splitBySpace: Array<string> = line.split(' ');
     const limits: Array<string> = splitBySpace[0].split('-');
@@ -26,6 +32,9 @@ const parsePolicy = (line: string): PasswordPolicy => {
     };
 }
 
+/**
+ * Returns the number of valid passwords.
+ */
 const evalPasswords = (passwords: Array<string>): number => {
     return passwords.filter((x) => {
         const passwordAndPolicy: Array<string> = x.split(': ');

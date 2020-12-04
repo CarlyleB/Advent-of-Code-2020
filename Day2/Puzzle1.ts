@@ -9,11 +9,18 @@ interface PasswordPolicy {
     letter: string;
 }
 
+/**
+ * Counts the number of times the letter specified by the policy occurs in the given password,
+ * and returns true if it is within the policy's bounds.
+ */
 const isPasswordValid = (policy: PasswordPolicy, password: string): boolean => {
     const count: number = password.split('').filter((x) => x === policy.letter).length;
     return count >= policy.min && count <= policy.max;
 }
 
+/**
+ * Creates PasswordPolicy object from a string in the format "<min>-<max> <letter>"
+ */
 const parsePolicy = (line: string): PasswordPolicy => {
     const splitBySpace: Array<string> = line.split(' ');
     const limits: Array<string> = splitBySpace[0].split('-');
@@ -24,6 +31,9 @@ const parsePolicy = (line: string): PasswordPolicy => {
     };
 }
 
+/**
+ * Returns the number of valid passwords.
+ */
 const evalPasswords = (passwords: Array<string>): number => {
     return passwords.filter((x) => {
         const passwordAndPolicy: Array<string> = x.split(': ');
