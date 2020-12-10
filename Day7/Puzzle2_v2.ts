@@ -7,7 +7,7 @@ type BagContents  = Array<ChildBag>;
 
 interface ChildBag {
     amt: number;
-    bag: Bag;
+    color: string;
 }
 
 class Bag {
@@ -32,7 +32,7 @@ class Bag {
     }
 
     public hasChild = (color: string): boolean => {
-        return this.children.findIndex((c: ChildBag) => c.bag.color === color) >= 0;
+        return this.children.findIndex((c: ChildBag) => c.color === color) >= 0;
     }
 
     public getColorCapacity = (color: string): number => {
@@ -44,7 +44,7 @@ class Bag {
     }
 
     public getChildByColor = (color: string): ChildBag | undefined => {
-        return this.children.find((c: ChildBag) => c.bag.color === color);
+        return this.children.find((c: ChildBag) => c.color === color);
     }
 
     public getChildren = (): BagContents => {
@@ -81,27 +81,16 @@ class BagParser {
             childSpecsArr.forEach((childSpecs: string, i: number) => {
                 const amtStr: string = childSpecs.split(' ')[0];
                 const amt: number = parseInt(amtStr);
-                // console.log('color: ' + color + ', amt: ' + amt);
                 const remainder: string = childSpecs.substring(amtStr.length + 1);
                 const splitRemainder: Array<string> = remainder.split(' ');
                 const lastWord: string = splitRemainder[splitRemainder.length - 1];
                 const childColor: string = remainder.substring(0, remainder.length - lastWord.length).trimStart().trimEnd();
-                let child: Bag;
-                if (!tracker.hasBag(childColor)) {
-                    child = new Bag(childColor);
-                    tracker.addBag(child);
-                } else {
-                    child = tracker.getBagByColor(childColor)!;
-                }
-                childBags.push({ amt: amt, bag: child })
-                
+                if (!tracker.hasBag(color)) tracker.addBag(new Bag(color));
+                childBags.push({ amt: amt, color: childColor })
             });
         }
-        if (!tracker.hasBag(color)) {
-            tracker.addBag(new Bag(color, childBags));
-        } else {
-            tracker.updateChildren(color, childBags);
-        }
+        
+        tracker.addOrUpdateBag(color, childBags);
     }
 }
 
@@ -115,7 +104,7 @@ class BagTracker {
         console.log(this.bags);
     }
 
-    public updateChildren = (color: string, children: Array<ChildBag>): void => {
+    private readonly updateChildren = (color: string, children: Array<ChildBag>): void => {
         const bagIdx: number = this._getBagIdx(color);
         if (bagIdx >= 0) {
             this.bags[bagIdx].setChildren(children);
@@ -128,10 +117,17 @@ class BagTracker {
         const bag: Bag = this.bags[bagIdx];
         let numChildren: number = 0;
         bag.getChildren().forEach((child: ChildBag) => {
-            console.log(child.amt + ' ' + child.bag.getColor() + ' children of ' + color);
-            numChildren += child.amt + (child.amt * this.countChildBags(child.bag.getColor()));
+            numChildren += child.amt + (child.amt * this.countChildBags(child.color));
         });
         return numChildren
+    }
+
+    public addOrUpdateBag = (color: string, childBags: Array<ChildBag>): void => {
+        if (!this.hasBag(color)) {
+            this.addBag(new Bag(color, childBags));
+        } else {
+            this.updateChildren(color, childBags);
+        }
     }
 
     public hasBag = (color: string): boolean => {
@@ -160,7 +156,8 @@ class BagTracker {
     }
 
     private readonly _bagHoldsColor = (bag: Bag, color: string): boolean => {
-        return bag.hasChild(color) || bag.getChildren().findIndex((a: ChildBag) => this._bagHoldsColor(a.bag, color)) >= 0;
+        return bag.hasChild(color) ||
+            bag.getChildren().findIndex((a: ChildBag) => this._bagHoldsColor(this.getBagByColor(a.color)!, color)) >= 0;
     }
 }
 
