@@ -1,0 +1,8 @@
+red bags contain 2 blue bags, 4 green bags, 3 orange bags.
+blue bags contain no other bags.
+green bags contain 1 purple bag.
+purple bags contain no other bags.
+orange bags contain 1 pink bag, 3 yellow bags.
+pink bags contain 4 gray bags.
+gray bags contain no other bags.
+yellow bags contain no other bags.
