@@ -6,16 +6,19 @@ const entries: Array<number> = file.split('\n').reduce((filtered: Array<number>,
     return filtered;
 }, []);
 
+// Single node of the tree.
 interface Node {
     val: number;
     children: Array<Node>;
 }
 
+// Count of a specific node on certain level of the tree.
 interface NodeCount {
     node: Node;
     count: number;
 }
 
+// Distribution of nodes on a level of the tree.
 type Level = Array<NodeCount>;
 
 class NodeService {
