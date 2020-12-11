@@ -6,96 +6,71 @@ const entries: Array<number> = file.split('\n').reduce((filtered: Array<number>,
     return filtered;
 }, []);
 
-interface JoltageAdapter {
-    joltage: number;
-    mates: Array<JoltageAdapter>;
+interface Node {
+    val: number;
+    children: Array<Node>;
 }
 
-interface LevelNode { adapter: JoltageAdapter, count: number }
+interface NodeCount {
+    node: Node;
+    count: number;
+}
 
-type LevelNodes = Array<LevelNode>;
+type Level = Array<NodeCount>;
 
-class AdapterService {
-    public countAdapterArrangements = (joltages: Array<number>): number => {
-        const adapters: Array<JoltageAdapter> = this._createAdapters(joltages);
-        let nodes: LevelNodes = [{ adapter: adapters[0], count: 1 }];
-        const goal: JoltageAdapter = adapters[adapters.length - 1];
+class NodeService {
+    public countNodeArrangements = (vals: Array<number>): number => {
+        const nodes: Array<Node> = this._createNodes(vals);
+        let level: Level = [{ node: nodes[0], count: 1 }];
+        const goalNode: Node = nodes[nodes.length - 1];
         let count: number = 0;
-        while (nodes.length > 0) {
-            console.log(nodes);
-            nodes = this._getLevelNodes(nodes);
-            
-            const goalNode: LevelNode | undefined = nodes.find((node: LevelNode) => node.adapter.joltage === goal.joltage);
-            if (goalNode !== undefined) count += goalNode.count;
+        while (level.length > 0) {
+            level = this._getNextLevel(level);
+            const goalNodeCount: NodeCount | undefined = level.find((nodeCount: NodeCount) => nodeCount.node.val === goalNode.val);
+            if (goalNodeCount !== undefined) count += goalNodeCount.count;
         }
         return count;
     }
 
-    private readonly _getLevelNodes = (prevNodes: LevelNodes): LevelNodes => {
-        const nodes: LevelNodes = [];
-        prevNodes.forEach((prevNode: LevelNode) => {
-            prevNode.adapter.mates.forEach((mate: JoltageAdapter) => {
-                let mateIdx: number = nodes.findIndex((node: LevelNode) => node.adapter === mate);
-                if (mateIdx < 0) {
-                    nodes.push({ adapter: mate, count: prevNode.count });
+    private readonly _getNextLevel = (prevLevel: Level): Level => {
+        const level: Level = [];
+        prevLevel.forEach((prevNodeCount: NodeCount) => {
+            prevNodeCount.node.children.forEach((child: Node) => {
+                let childIdx: number = level.findIndex((nodeCount: NodeCount) => nodeCount.node.val === child.val);
+                if (childIdx < 0) {
+                    level.push({ node: child, count: prevNodeCount.count });
                 } else {
-                    nodes[mateIdx].count += prevNode.count;
+                    level[childIdx].count += prevNodeCount.count;
                 }
             });
         });
-        return nodes;
+        return level;
     }
 
-    private readonly _createAdapters = (joltages: Array<number>): Array<JoltageAdapter> => {
-        const jSorted: Array<number> = joltages.sort((a: number, b: number) => a - b);
-        const goal: number = jSorted[jSorted.length - 1] + 3;
-        jSorted.unshift(0);
-        jSorted.push(goal);
-        const adapters: Array<JoltageAdapter> = [];
-        for (let i: number = 0; i < jSorted.length; i++) {
+    private readonly _createNodes = (vals: Array<number>): Array<Node> => {
+        const sortedVals: Array<number> = vals.sort((a: number, b: number) => a - b);
+        const goal: number = sortedVals[sortedVals.length - 1] + 3;
+        sortedVals.unshift(0);
+        sortedVals.push(goal);
+        const nodes: Array<Node> = [];
+        for (let i: number = 0; i < sortedVals.length; i++) {
             let j: number = 1;
-            let adapterIdx: number = adapters.findIndex((a: JoltageAdapter) => a.joltage === jSorted[i]);
-            if (adapterIdx < 0) {
-                adapterIdx = adapters.push({ joltage: jSorted[i], mates: [] }) - 1;
+            let nodeIdx: number = nodes.findIndex((node: Node) => node.val === sortedVals[i]);
+            if (nodeIdx < 0) {
+                nodeIdx = nodes.push({ val: sortedVals[i], children: [] }) - 1;
             }
-            console.log('joltage: ' + jSorted[i]);
-            while (jSorted[i + j] - jSorted[i] <= 3) {
-                let mateIdx: number = adapters.findIndex((a: JoltageAdapter) => a.joltage === jSorted[i + j]);
-                console.log(adapters);
-                console.log('mate: ' + jSorted[i + j]);
-                if (mateIdx < 0) {
-                    mateIdx = adapters.push({ joltage: jSorted[i + j], mates: [] }) - 1;
+            while (sortedVals[i + j] - sortedVals[i] <= 3) {
+                let childIdx: number = nodes.findIndex((node: Node) => node.val === sortedVals[i + j]);
+                if (childIdx < 0) {
+                    childIdx = nodes.push({ val: sortedVals[i + j], children: [] }) - 1;
                 }
-                console.log('mateIdx: ' + mateIdx);
-                adapters[adapterIdx].mates.push(adapters[mateIdx]);
+                nodes[nodeIdx].children.push(nodes[childIdx]);
                 j++;
             }
         }
-        console.log('jSorted.length: ' + jSorted.length);
-        console.log('adapters.length: ' + adapters.length);
-        return adapters;
-    }
-
-    public multiplyDiffDistrubutions = (joltages: Array<number>): number => {
-        const jSorted: Array<number> = joltages.sort((a: number, b: number) => a - b);
-        jSorted.unshift(0); // The charging outlet is 0 jolts
-        jSorted.push(jSorted[jSorted.length - 1] + 3); // Your own device is 3 jolts higher than the highest adapter
-        let ones: number = 0;
-        let threes: number = 0;
-        for (let i: number = 1; i < jSorted.length; i++) {
-            const diff: number = jSorted[i] - jSorted[i - 1];
-            if (diff === 1) ones++
-            else if (diff === 3) threes++;
-        }
-        return ones * threes;
+        return nodes;
     }
 }
 
-const adapterService: AdapterService = new AdapterService();
-console.log(adapterService.countAdapterArrangements(entries));
-
-
-
-
-
-
+const nodeService: NodeService = new NodeService();
+console.log(nodeService.countNodeArrangements(entries));
