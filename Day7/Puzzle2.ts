@@ -76,17 +76,13 @@ const getBags = (vals: Array<string>): number => {
         return b.children.length > 0 && (b.children.findIndex((a) => a.color === color) >= 0 || b.children.findIndex((x) => holds(findBag(x.color), color)) >= 0);
     }
 
-    const countChildren = (bag: Bag, quantity = 1) => {
-        if (!bag.children.length) {
-            console.log('leaf color: ' + quantity + ' ' + bag.color);
-            return quantity;
-        }
+    const countChildren = (bag: Bag) => {
         let childQuantity = 0;
         console.log(bag.children);
         //console.log(bag.color + ' can contain ' + bag.children);
         bag.children.forEach((child) => {
             //console.log('color: ' + child.color + ' quantity: ' + child.quantity);
-            childQuantity += (quantity * (countChildren(findBag(child.color), child.quantity)))
+            childQuantity += child.quantity + (child.quantity * (countChildren(findBag(child.color))))
             //console.log(childQuantity);
         });
         return childQuantity;
